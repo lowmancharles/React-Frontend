@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import heroImg from './assets/hero.png'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
@@ -21,6 +21,14 @@ const [players, setPlayers] = useState(initialPlayers);
 const [newPlayerName, setNewPlayerName] = useState("");
 const [newPlayerPosition, setNewPlayerPosition] = useState("QB");
 const [newPlayerPoints, setNewPlayerPoints] = useState(0);
+const loadPlayers = async () => {
+  const response = await fetch("http://localhost:8001/players");
+  const data = await response.json();
+  setPlayers(data);
+};
+useEffect(() => {
+  loadPlayers();
+}, []);
 const qbs = players
 .filter((player) => player.position === "QB")
 .sort((a,b) => b.points - a.points)
@@ -101,18 +109,29 @@ const bench = players.filter((player) => !starters.includes(player) && !flex.inc
         <option value="K">K</option>
       </select>
       <input type="number" value={newPlayerPoints} onChange={(e) => setNewPlayerPoints(e.target.value)} placeholder="Enter player points" />
-      <button onClick={() => {
+      <button onClick={async () => {
         if (newPlayerName === "" || isNaN(parseFloat(newPlayerPoints))) {
           alert("Please enter a valid player name and points.");
           return;
         }
-        setPlayers([...players, {name: newPlayerName, position: newPlayerPosition, points: parseFloat(newPlayerPoints), id: crypto.randomUUID()}]);
-      console.log(typeof parseFloat(newPlayerPoints));
+        const response = await fetch("http://localhost:8001/players", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({name: newPlayerName, position: newPlayerPosition, points: parseFloat(newPlayerPoints)}),
+        });
+        if (!response.ok) {
+          alert("Failed to save player.");
+          return;
+        }
+        const newPlayer = await response.json();
+        setPlayers([...players, newPlayer]);
       }}>
-Add Player 
+        Add Player
       </button>
-      </>
+      <button onClick={loadPlayers}>Load Players</button>
+    </>
   )
 }
 
 export default App
+
