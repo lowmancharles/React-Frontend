@@ -58,6 +58,7 @@ const flex = players
 const bench = players.filter((player) => !starters.includes(player) && !flex.includes(player));
   return (
     <>
+      <h1>Fantasy Roster</h1>
       <h2>Quarterbacks</h2>
       <ul>
       {qbs.map((player) => (
