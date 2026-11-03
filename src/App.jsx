@@ -21,10 +21,15 @@ const [players, setPlayers] = useState(initialPlayers);
 const [newPlayerName, setNewPlayerName] = useState("");
 const [newPlayerPosition, setNewPlayerPosition] = useState("QB");
 const [newPlayerPoints, setNewPlayerPoints] = useState(0);
+const API_URL = import.meta.env.VITE_API_URL;
 const loadPlayers = async () => {
-  const response = await fetch("http://localhost:8001/players");
-  const data = await response.json();
-  setPlayers(data);
+  try {
+    const response = await fetch(`${API_URL}/players`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    setPlayers(await response.json());
+  } catch (err) {
+    console.error("Could not load players:", err);
+  }
 };
 useEffect(() => {
   loadPlayers();
@@ -115,11 +120,18 @@ const bench = players.filter((player) => !starters.includes(player) && !flex.inc
           alert("Please enter a valid player name and points.");
           return;
         }
-        const response = await fetch("http://localhost:8001/players", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({name: newPlayerName, position: newPlayerPosition, points: parseFloat(newPlayerPoints)}),
-        });
+        let response;
+        try {
+          response = await fetch(`${API_URL}/players`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({name: newPlayerName, position: newPlayerPosition, points: parseFloat(newPlayerPoints)}),
+          });
+        } catch (err) {
+          console.error("Could not reach the server:", err);
+          alert("Could not reach the server.");
+          return;
+        }
         if (!response.ok) {
           alert("Failed to save player.");
           return;
