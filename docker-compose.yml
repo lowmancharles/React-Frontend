@@ -1,0 +1,12 @@
+# Serves the built React app with nginx.
+# Settings come from a .env file next to this one (see .env.server.example).
+
+services:
+  web:
+    build:
+      context: .
+      args:
+        VITE_API_URL: ${VITE_API_URL:?set VITE_API_URL in .env}
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-80}:80"
